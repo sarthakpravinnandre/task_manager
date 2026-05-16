@@ -29,6 +29,11 @@ This repo includes `railway.json` with:
 After first deploy, run in Railway shell:
 - `npm run db:seed`
 
+## 6) Health check
+- Health endpoint: `/api/health`
+- Example: `https://your-app-name.up.railway.app/api/health`
+
 ## Notes
 - `.env` is now ignored by git.
 - If you already committed `.env` earlier, rotate secrets immediately.
+- Prefer `sslmode=verify-full` in `DATABASE_URL` to avoid pg SSL-mode warnings.
