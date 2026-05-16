@@ -35,7 +35,7 @@ function LoginContent() {
       const result = await signIn('credentials', {
         redirect: false,
         email: email.trim().toLowerCase(),
-        password: password.trim(),
+        password,
       })
 
       if (result?.error) {

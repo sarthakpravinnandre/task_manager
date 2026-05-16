@@ -23,7 +23,6 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 
           const { email, password } = parsedCredentials.data
           const normalizedEmail = email.trim().toLowerCase()
-          const normalizedPassword = password.trim()
 
           const user = await prisma.user.findUnique({ where: { email: normalizedEmail } })
           if (!user || !user.password) {
@@ -31,7 +30,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             return null
           }
 
-          const passwordsMatch = await bcrypt.compare(normalizedPassword, user.password)
+          const passwordsMatch = await bcrypt.compare(password, user.password)
           if (!passwordsMatch) {
             console.warn(`[auth] Password mismatch: ${normalizedEmail}`)
             return null

@@ -6,10 +6,12 @@ import { Role } from '@prisma/client'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { email, password, fullName, role } = body
-    const normalizedEmail = String(email).trim().toLowerCase()
+    const email = String(body?.email ?? '').trim().toLowerCase()
+    const password = String(body?.password ?? '')
+    const fullName = String(body?.fullName ?? '').trim()
+    const role = String(body?.role ?? '')
 
-    if (!normalizedEmail || !password || !fullName || !role) {
+    if (!email || !password || !fullName || !role) {
       return NextResponse.json(
         { message: 'Missing required fields' },
         { status: 400 }
@@ -17,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     const existingUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+      where: { email },
     })
 
     if (existingUser) {
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
-        email: normalizedEmail,
+        email,
         name: fullName,
         password: hashedPassword,
         role: mappedRole,
