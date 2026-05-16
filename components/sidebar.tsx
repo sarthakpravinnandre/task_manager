@@ -51,7 +51,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-20 bg-[#0a0a0a] border-r border-white/5 pt-6 flex flex-col items-center">
+    <aside className="fixed left-0 top-0 h-screen w-20 bg-sidebar border-r border-sidebar-border pt-6 flex flex-col items-center">
       {/* Logo */}
       <div className="mb-10">
         <div className="w-10 h-10 bg-[#3b82f6] rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -87,7 +87,7 @@ export function Sidebar() {
                         <Icon className="w-6 h-6" />
                       </Button>
                       {item.badge && (
-                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-[#0a0a0a]">
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-sidebar">
                           {item.badge}
                         </span>
                       )}
@@ -133,11 +133,13 @@ export function Sidebar() {
           
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
+              <Button
+                type="button"
                 onClick={handleLogout}
-                variant="ghost" 
+                variant="ghost"
                 size="icon"
-                className="w-12 h-12 rounded-xl text-zinc-500 hover:text-orange-500 hover:bg-orange-500/5 transition-all duration-300"
+                aria-label="Log out"
+                className="w-12 h-12 rounded-xl text-muted-foreground hover:text-orange-500 hover:bg-orange-500/5 transition-all duration-300"
               >
                 <LogOut className="w-6 h-6" />
               </Button>

@@ -43,7 +43,7 @@ export function ProjectsChart({ projects, totalProjects, trend = 0 }: ProjectsCh
             </div>
           )}
         </div>
-        <button type="button" className="text-zinc-600 hover:text-zinc-400">
+        <button type="button" aria-label="Projects chart options" className="text-zinc-600 hover:text-zinc-400">
           <MoreVertical className="w-4 h-4" />
         </button>
       </div>

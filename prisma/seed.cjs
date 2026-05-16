@@ -161,10 +161,12 @@ async function main() {
       },
     })
 
+    const reminderAt930 = setMinutes(setHours(new Date(), 9), 30)
+    const reminderAt10 = setMinutes(setHours(new Date(), 10), 0)
     await prisma.reminder.createMany({
       data: [
-        { title: 'Check test results', time: '09:30 AM', priority: 'low', userId: user.id },
-        { title: 'Client Presentation', time: '10:00 AM', priority: 'high', userId: user.id },
+        { title: 'Check test results', scheduledAt: reminderAt930, priority: 'low', userId: user.id },
+        { title: 'Client Presentation', scheduledAt: reminderAt10, priority: 'high', userId: user.id },
       ],
     })
 

@@ -37,7 +37,7 @@ export function EnhancedActivityPanel({ stats, completion, trend = 0 }: Enhanced
             </div>
           )}
         </div>
-        <button type="button" className="text-zinc-600 hover:text-zinc-400">
+        <button type="button" aria-label="Activity options" className="text-zinc-600 hover:text-zinc-400">
           <MoreVertical className="w-4 h-4" />
         </button>
       </div>

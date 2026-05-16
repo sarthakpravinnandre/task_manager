@@ -24,7 +24,7 @@ export async function GET() {
       return NextResponse.json(teams)
     }
 
-    if (role === Role.TEAM_LEAD) {
+    if (role === Role.TEAM_LEAD || role === Role.PROJECT_LEAD) {
       const teams = await prisma.team.findMany({
         where: { leadId: session.user.id },
         include: {
@@ -33,7 +33,7 @@ export async function GET() {
           projects: true,
         },
       })
-      return NextResponse.json(teams)
+      if (teams.length > 0) return NextResponse.json(teams)
     }
 
     const teams = await prisma.team.findMany({

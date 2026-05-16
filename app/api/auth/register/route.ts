@@ -9,12 +9,19 @@ export async function POST(req: Request) {
     const email = String(body?.email ?? '').trim().toLowerCase()
     const password = String(body?.password ?? '')
     const fullName = String(body?.fullName ?? '').trim()
-    const role = String(body?.role ?? '')
-
-    if (!email || !password || !fullName || !role) {
+    if (!email || !password || !fullName) {
       return NextResponse.json(
         { message: 'Missing required fields' },
         { status: 400 }
+      )
+    }
+
+    // Public registration is developer-only; elevated roles are assigned by admins.
+    const requestedRole = String(body?.role ?? '').toUpperCase().replace(/-/g, '_')
+    if (requestedRole && requestedRole !== 'DEVELOPER') {
+      return NextResponse.json(
+        { message: 'Only developer accounts can be created via sign-up' },
+        { status: 403 }
       )
     }
 
@@ -31,25 +38,12 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const key = String(role).toUpperCase()
-    const roleMap: Record<string, Role> = {
-      ADMIN: Role.ADMIN,
-      DEVELOPER: Role.DEVELOPER,
-      TEAM_LEAD: Role.TEAM_LEAD,
-      SENIOR_MANAGER: Role.SENIOR_MANAGER,
-      PROJECT_LEAD: Role.PROJECT_LEAD,
-    }
-    const mappedRole = roleMap[key]
-    if (!mappedRole) {
-      return NextResponse.json({ message: 'Invalid role' }, { status: 400 })
-    }
-
     const user = await prisma.user.create({
       data: {
         email,
         name: fullName,
         password: hashedPassword,
-        role: mappedRole,
+        role: Role.DEVELOPER,
       },
     })
 

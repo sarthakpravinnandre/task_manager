@@ -86,7 +86,7 @@ export default function LandingPage() {
               <Users className="mb-4 h-8 w-8 text-primary" />
               <h3 className="mb-2 text-xl font-semibold">Role-Based Access</h3>
               <p className="text-muted-foreground">
-                4-tier permission system for Developers, Team Leads, Senior Managers, and Project Leads.
+                Five roles—Admin, Developer, Team Lead, Senior Manager, and Project Lead—with scoped dashboards and APIs.
               </p>
             </div>
             <div className="rounded-lg border border-border bg-background p-6">

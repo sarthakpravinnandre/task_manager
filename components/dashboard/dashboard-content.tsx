@@ -8,8 +8,10 @@ import { TimelineView } from '@/components/dashboard/timeline-view'
 import { ProjectsChart } from '@/components/dashboard/projects-chart'
 import { ColorPaletteCard } from '@/components/dashboard/color-palette-card'
 import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton'
+import { Button } from '@/components/ui/button'
 import { useDashboard } from '@/hooks/use-dashboard'
-import type { ReactNode } from 'react'
+import type { TimelinePeriod } from '@/lib/dashboard/types'
+import { useState, type ReactNode } from 'react'
 
 type DashboardLayout = 'developer' | 'standard'
 
@@ -26,17 +28,21 @@ export function DashboardContent({
   subtitle,
   headerSlot,
 }: DashboardContentProps) {
-  const { data, error, isLoading } = useDashboard()
+  const [timelinePeriod, setTimelinePeriod] = useState<TimelinePeriod>('week')
+  const { data, error, isLoading, mutate } = useDashboard(timelinePeriod)
 
   if (isLoading) {
-    return <DashboardSkeleton />
+    return <DashboardSkeleton layout={layout} />
   }
 
   if (error || !data) {
     return (
-      <div className="bg-[#121212] rounded-3xl border border-red-500/20 p-8 text-center">
+      <div className="bg-card rounded-3xl border border-red-500/20 p-8 text-center">
         <p className="text-red-400 mb-2">Failed to load dashboard data</p>
-        <p className="text-zinc-500 text-sm">Check your database connection and try refreshing.</p>
+        <p className="text-zinc-500 text-sm mb-4">Check your database connection and try again.</p>
+        <Button variant="outline" onClick={() => mutate()} className="border-white/10 text-white hover:bg-white/5">
+          Retry
+        </Button>
       </div>
     )
   }
@@ -60,14 +66,18 @@ export function DashboardContent({
       <div>
         {(title || subtitle) && (
           <div className="mb-8">
-            {title && <h1 className="text-3xl font-bold text-white">{title}</h1>}
-            {subtitle && <p className="text-zinc-400 mt-1">{subtitle}</p>}
+            {title && <h1 className="text-3xl font-bold">{title}</h1>}
+            {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
           </div>
         )}
         {headerSlot}
 
         <div className="mb-6">
-          <TimelineView days={timeline} />
+          <TimelineView
+            days={timeline}
+            period={timelinePeriod}
+            onPeriodChange={setTimelinePeriod}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -107,7 +117,7 @@ export function DashboardContent({
               isPlaying={true}
             />
           ) : (
-            <div className="bg-[#121212] border border-white/5 rounded-[32px] p-6 flex items-center justify-center min-h-[280px]">
+            <div className="bg-card border border-border rounded-[32px] p-6 flex items-center justify-center min-h-[280px]">
               <p className="text-zinc-500 text-sm">No active task</p>
             </div>
           )}
@@ -115,27 +125,31 @@ export function DashboardContent({
           <EnhancedMeetingsList meetings={meetings} count={meetings.length} />
         </div>
 
-        <div className="bg-[#121212] rounded-3xl border border-white/5 overflow-hidden">
-          <TimelineView days={timeline} />
+        <div className="bg-card rounded-3xl border border-border overflow-hidden">
+          <TimelineView
+            days={timeline}
+            period={timelinePeriod}
+            onPeriodChange={setTimelinePeriod}
+          />
         </div>
       </div>
 
       <div className="w-full lg:w-[380px] space-y-6">
-        <div className="bg-[#121212] rounded-3xl border border-white/5 p-6 shadow-xl shadow-black/20">
+        <div className="bg-card rounded-3xl border border-border p-6 shadow-xl shadow-black/20">
           <EnhancedActivityPanel
             stats={stats}
             completion={completion}
             trend={activityTrend}
           />
         </div>
-        <div className="bg-[#121212] rounded-3xl border border-white/5 p-6 shadow-xl shadow-black/20">
+        <div className="bg-card rounded-3xl border border-border p-6 shadow-xl shadow-black/20">
           <ProjectsChart
             projects={projects}
             totalProjects={totalProjects}
             trend={projectsTrend}
           />
         </div>
-        <div className="bg-[#121212] rounded-3xl border border-white/5 p-6 shadow-xl shadow-black/20">
+        <div className="bg-card rounded-3xl border border-border p-6 shadow-xl shadow-black/20">
           <EnhancedReminders reminders={reminders} />
         </div>
       </div>

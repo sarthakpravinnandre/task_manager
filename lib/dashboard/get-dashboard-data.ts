@@ -1,6 +1,7 @@
+import { getScopedUserIds } from '@/lib/api/scope'
+import { format } from 'date-fns'
 import prisma from '@/lib/prisma'
-import { Role } from '@prisma/client'
-import type { DashboardData } from './types'
+import type { DashboardData, TimelinePeriod } from './types'
 import {
   buildProjectsChart,
   buildTimeline,
@@ -13,51 +14,13 @@ import {
   mapTaskToDashboard,
 } from './mappers'
 
-function normalizeRole(role?: string | null): Role {
-  const key = (role ?? 'DEVELOPER').toUpperCase().replace(/-/g, '_')
-  const map: Record<string, Role> = {
-    ADMIN: Role.ADMIN,
-    DEVELOPER: Role.DEVELOPER,
-    TEAM_LEAD: Role.TEAM_LEAD,
-    SENIOR_MANAGER: Role.SENIOR_MANAGER,
-    PROJECT_LEAD: Role.PROJECT_LEAD,
-  }
-  return map[key] ?? Role.DEVELOPER
-}
-
-async function getUserIdsForScope(
-  userId: string,
-  role: Role,
-  teamId: string | null | undefined
-): Promise<string[]> {
-  switch (role) {
-    case Role.TEAM_LEAD:
-    case Role.PROJECT_LEAD:
-      if (!teamId) return [userId]
-      {
-        const members = await prisma.user.findMany({
-          where: { teamId },
-          select: { id: true },
-        })
-        return members.length > 0 ? members.map((m) => m.id) : [userId]
-      }
-    case Role.SENIOR_MANAGER:
-    case Role.ADMIN: {
-      const all = await prisma.user.findMany({ select: { id: true } })
-      return all.map((u) => u.id)
-    }
-    default:
-      return [userId]
-  }
-}
-
 export async function getDashboardData(
   userId: string,
   role: string | null | undefined,
-  teamId: string | null | undefined
+  teamId: string | null | undefined,
+  timelinePeriod: TimelinePeriod = 'week'
 ): Promise<DashboardData> {
-  const normalizedRole = normalizeRole(role)
-  const userIds = await getUserIdsForScope(userId, normalizedRole, teamId)
+  const userIds = await getScopedUserIds(userId, role, teamId)
 
   const [tasks, meetings, reminders] = await Promise.all([
     prisma.task.findMany({
@@ -71,7 +34,7 @@ export async function getDashboardData(
     }),
     prisma.reminder.findMany({
       where: { userId: { in: userIds } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { scheduledAt: 'asc' },
     }),
   ])
 
@@ -82,7 +45,7 @@ export async function getDashboardData(
 
   const { stats, completion, trend: activityTrend } = buildWeeklyStats(tasks)
   const { projects, totalProjects, trend: projectsTrend } = buildProjectsChart(tasks)
-  const timeline = buildTimeline(tasks)
+  const timeline = buildTimeline(tasks, timelinePeriod)
 
   const activeInProgress = tasks.find((t) => t.status === 'in_progress')
 
@@ -117,5 +80,29 @@ export async function getDashboardData(
           }
         : null,
     notificationCount,
+    notifications: [
+      ...reminders
+        .filter((r) => r.priority === 'high')
+        .slice(0, 5)
+        .map((r) => ({
+          id: `reminder-${r.id}`,
+          title: r.title,
+          subtitle: format(r.scheduledAt, 'EEE, hh:mm a'),
+          type: 'reminder' as const,
+        })),
+      ...todayMeetings
+        .filter((m) => m.status === 'scheduled')
+        .slice(0, 5)
+        .map((m) => ({
+          id: `meeting-${m.id}`,
+          title: m.title,
+          subtitle: formatMeetingSubtitle(m.startTime),
+          type: 'meeting' as const,
+        })),
+    ],
   }
+}
+
+function formatMeetingSubtitle(startTime: Date): string {
+  return format(startTime, 'EEE, hh:mm a')
 }

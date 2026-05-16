@@ -12,7 +12,12 @@ interface ColorPaletteCardProps {
 
 export function ColorPaletteCard({ title, subtitle, isPlaying: initialIsPlaying = false }: ColorPaletteCardProps) {
   const [isPlaying, setIsPlaying] = useState(initialIsPlaying)
-  const [seconds, setSeconds] = useState(3476) // Start from 00:57:56
+  const [seconds, setSeconds] = useState(0)
+
+  useEffect(() => {
+    setSeconds(0)
+    setIsPlaying(initialIsPlaying)
+  }, [title, initialIsPlaying])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -32,7 +37,7 @@ export function ColorPaletteCard({ title, subtitle, isPlaying: initialIsPlaying 
   }
 
   return (
-    <div className="bg-[#121212] border border-white/5 rounded-[32px] p-6 flex flex-col justify-between shadow-xl">
+    <div className="bg-card border border-border rounded-[32px] p-6 flex flex-col justify-between shadow-xl">
       <div>
         <div className="text-xl font-semibold text-white tracking-tight">{title}</div>
         <div className="text-zinc-500 text-sm mt-1">{subtitle}</div>

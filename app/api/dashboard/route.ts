@@ -1,28 +1,34 @@
 import { auth } from '@/auth'
+import { resolveSessionTeamId } from '@/lib/api/scope'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import prisma from '@/lib/prisma'
+import type { TimelinePeriod } from '@/lib/dashboard/types'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+const VALID_PERIODS: TimelinePeriod[] = ['today', 'week', 'month', 'year']
+
+export async function GET(request: Request) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    let teamId = (session.user as { teamId?: string }).teamId
-    if (!teamId) {
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { teamId: true },
-      })
-      teamId = user?.teamId ?? undefined
-    }
+    const { searchParams } = new URL(request.url)
+    const periodParam = searchParams.get('period')?.toLowerCase()
+    const timelinePeriod = VALID_PERIODS.includes(periodParam as TimelinePeriod)
+      ? (periodParam as TimelinePeriod)
+      : 'week'
+
+    const teamId = await resolveSessionTeamId(
+      session.user.id,
+      (session.user as { teamId?: string }).teamId
+    )
 
     const data = await getDashboardData(
       session.user.id,
       session.user.role,
-      teamId
+      teamId,
+      timelinePeriod
     )
 
     return NextResponse.json(data)

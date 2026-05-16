@@ -6,7 +6,12 @@ import {
   endOfDay,
   startOfWeek,
   endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
   eachDayOfInterval,
+  eachMonthOfInterval,
   isWithinInterval,
   subWeeks,
 } from 'date-fns'
@@ -18,6 +23,7 @@ import type {
   DashboardStat,
   DashboardTask,
   TimelineDay,
+  TimelinePeriod,
 } from './types'
 
 type TaskWithProject = Task & { project: Project | null }
@@ -71,7 +77,7 @@ export function mapReminderToDashboard(reminder: Reminder): DashboardReminder {
   return {
     id: reminder.id,
     title: reminder.title,
-    time: reminder.time,
+    time: format(reminder.scheduledAt, 'hh:mm a'),
     priority: reminder.priority as DashboardReminder['priority'],
   }
 }
@@ -163,37 +169,104 @@ export function buildWeeklyStats(tasks: Task[]): {
   return { stats, completion, trend }
 }
 
-export function buildTimeline(tasks: TaskWithProject[]): TimelineDay[] {
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+function mapTasksToTimelineProjects(
+  dayTasks: TaskWithProject[]
+): TimelineDay['projects'] {
+  return dayTasks.slice(0, 6).map((t) => ({
+    id: t.id,
+    name: t.title,
+    description: t.description ?? undefined,
+    priority: (t.status === 'completed'
+      ? 'done'
+      : t.priority === 'high'
+        ? 'high'
+        : t.priority === 'low'
+          ? 'low'
+          : 'medium') as TimelineDay['projects'][0]['priority'],
+    status: t.status as TimelineDay['projects'][0]['status'],
+    time: t.dueDate ? format(t.dueDate, 'hh:mm a') : undefined,
+  }))
+}
+
+export function buildTimeline(
+  tasks: TaskWithProject[],
+  period: TimelinePeriod = 'week'
+): TimelineDay[] {
+  const now = new Date()
+
+  if (period === 'today') {
+    const day = now
+    const dayTasks = tasks.filter((t) => {
+      const ref = t.dueDate ?? t.createdAt
+      return ref >= startOfDay(day) && ref <= endOfDay(day)
+    })
+    return [
+      {
+        day: format(day, 'EEE').toUpperCase(),
+        date: day.getDate(),
+        month: day.getMonth(),
+        projects: mapTasksToTimelineProjects(dayTasks),
+      },
+    ]
+  }
+
+  if (period === 'month') {
+    const monthStart = startOfMonth(now)
+    const monthEnd = endOfMonth(now)
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd }).filter(
+      (_, i, arr) => arr.length <= 14 || i % Math.ceil(arr.length / 14) === 0
+    )
+    return days.map((day) => ({
+      day: format(day, 'EEE').toUpperCase(),
+      date: day.getDate(),
+      month: day.getMonth(),
+      projects: mapTasksToTimelineProjects(
+        tasks.filter((t) => {
+          const ref = t.dueDate ?? t.createdAt
+          return ref >= startOfDay(day) && ref <= endOfDay(day)
+        })
+      ),
+    }))
+  }
+
+  if (period === 'year') {
+    const yearStart = startOfYear(now)
+    const yearEnd = endOfYear(now)
+    const months = eachMonthOfInterval({ start: yearStart, end: yearEnd })
+    return months.map((month) => {
+      const monthTasks = tasks.filter((t) => {
+        const ref = t.dueDate ?? t.createdAt
+        return isWithinInterval(ref, {
+          start: startOfMonth(month),
+          end: endOfMonth(month),
+        })
+      })
+      return {
+        day: format(month, 'MMM').toUpperCase(),
+        date: month.getMonth() + 1,
+        month: month.getMonth(),
+        projects: mapTasksToTimelineProjects(monthTasks),
+      }
+    })
+  }
+
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 })
   const days = eachDayOfInterval({
     start: weekStart,
-    end: endOfWeek(new Date(), { weekStartsOn: 1 }),
+    end: endOfWeek(now, { weekStartsOn: 1 }),
   }).slice(0, 5)
 
-  return days.map((day) => {
-    const dayTasks = tasks
-      .filter((t) => {
+  return days.map((day) => ({
+    day: format(day, 'EEE').toUpperCase(),
+    date: day.getDate(),
+    month: day.getMonth(),
+    projects: mapTasksToTimelineProjects(
+      tasks.filter((t) => {
         const ref = t.dueDate ?? t.createdAt
         return ref >= startOfDay(day) && ref <= endOfDay(day)
       })
-      .slice(0, 4)
-
-    return {
-      day: format(day, 'EEE').toUpperCase(),
-      date: day.getDate(),
-      projects: dayTasks.map((t) => ({
-        id: t.id,
-        name: t.title,
-        description: t.description ?? undefined,
-        priority: (t.priority === 'high'
-          ? 'high'
-          : t.priority === 'low'
-            ? 'low'
-            : 'medium') as TimelineDay['projects'][0]['priority'],
-        status: t.status as TimelineDay['projects'][0]['status'],
-      })),
-    }
-  })
+    ),
+  }))
 }
 
 export function filterTodayTasks(tasks: TaskWithProject[]): TaskWithProject[] {

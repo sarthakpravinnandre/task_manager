@@ -12,13 +12,6 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -28,7 +21,6 @@ export default function Page() {
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<'admin' | 'developer' | 'team_lead' | 'senior_manager' | 'project_lead'>('developer')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -54,7 +46,7 @@ export default function Page() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, fullName, role }),
+        body: JSON.stringify({ email, password, fullName }),
       })
 
       const data = await response.json()
@@ -79,7 +71,7 @@ export default function Page() {
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">Sign up</CardTitle>
-              <CardDescription>Create a new account</CardDescription>
+              <CardDescription>Create a developer account</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSignUp}>
@@ -105,21 +97,6 @@ export default function Page() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select value={role} onValueChange={(value: any) => setRole(value)}>
-                      <SelectTrigger id="role">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="developer">Developer</SelectItem>
-                        <SelectItem value="team_lead">Team Lead</SelectItem>
-                        <SelectItem value="senior_manager">Senior Manager</SelectItem>
-                        <SelectItem value="project_lead">Project Lead</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>

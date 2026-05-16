@@ -7,7 +7,17 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
-      const protectedRoutes = ['/dashboard', '/tasks', '/meetings', '/team', '/settings', '/timeline', '/messages']
+      const protectedRoutes = [
+        '/dashboard',
+        '/tasks',
+        '/meetings',
+        '/team',
+        '/settings',
+        '/timeline',
+        '/messages',
+        '/voice',
+        '/support',
+      ]
       const isProtectedRoute = protectedRoutes.some((route) =>
         nextUrl.pathname.startsWith(route)
       )

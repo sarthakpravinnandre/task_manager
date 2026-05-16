@@ -44,12 +44,23 @@ export interface TimelineProject {
   description?: string
   priority: 'low' | 'medium' | 'high' | 'done'
   status: 'todo' | 'in_progress' | 'completed'
+  time?: string
 }
 
 export interface TimelineDay {
   day: string
   date: number
+  month?: number
   projects: TimelineProject[]
+}
+
+export type TimelinePeriod = 'today' | 'week' | 'month' | 'year'
+
+export interface DashboardNotification {
+  id: string
+  title: string
+  subtitle: string
+  type: 'reminder' | 'meeting'
 }
 
 export interface DashboardData {
@@ -65,4 +76,5 @@ export interface DashboardData {
   timeline: TimelineDay[]
   activeTask: { title: string; subtitle: string } | null
   notificationCount: number
+  notifications: DashboardNotification[]
 }

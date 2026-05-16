@@ -24,6 +24,24 @@ enum ProjectAssignmentStatus {
   COMPLETED
 }
 
+enum TaskStatus {
+  todo
+  in_progress
+  completed
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+}
+
+enum ReminderPriority {
+  low
+  medium
+  high
+}
+
 model Team {
   id        String    @id @default(cuid())
   name      String
@@ -131,11 +149,11 @@ model VerificationToken {
 }
 
 model Task {
-  id          String    @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   description String?
-  status      String    @default("todo")
-  priority    String    @default("medium")
+  status      TaskStatus   @default(todo)
+  priority    TaskPriority @default(medium)
   dueDate     DateTime?
   projectId   String?
   project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
@@ -162,15 +180,15 @@ model Meeting {
 }
 
 model Reminder {
-  id          String   @id @default(cuid())
+  id          String           @id @default(cuid())
   title       String
-  time        String
-  priority    String   @default("low")
+  scheduledAt DateTime         @default(now())
+  priority    ReminderPriority @default(low)
   userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Message {

@@ -1,5 +1,6 @@
 import { auth } from '@/auth'
 import { normalizeRole } from '@/lib/auth/roles'
+import { syncAssignmentTask } from '@/lib/projects/sync-assignment-task'
 import prisma from '@/lib/prisma'
 import { ProjectAssignmentStatus, Role } from '@prisma/client'
 import { NextResponse } from 'next/server'
@@ -67,6 +68,13 @@ export async function POST(request: Request) {
         },
       })
 
+      await syncAssignmentTask(
+        body.projectId,
+        body.developerId,
+        ProjectAssignmentStatus.PENDING,
+        project.name
+      )
+
       return NextResponse.json(assignment)
     }
 
@@ -132,6 +140,13 @@ export async function POST(request: Request) {
       data,
       include: { project: true },
     })
+
+    await syncAssignmentTask(
+      body.projectId,
+      session.user.id,
+      data.status,
+      updated.project.name
+    )
 
     return NextResponse.json(updated)
   } catch (error) {

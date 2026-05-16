@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface Reminder {
   id: string
@@ -24,8 +25,8 @@ export function EnhancedReminders({ reminders }: EnhancedRemindersProps) {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">Reminders</h3>
-        <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 text-sm font-medium">
-          Manage &gt;
+        <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 text-sm font-medium" asChild>
+          <Link href="/settings">Manage &gt;</Link>
         </Button>
       </div>
 
