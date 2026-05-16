@@ -63,19 +63,7 @@ export default function Page() {
         throw new Error(data.message || 'Registration failed')
       }
 
-      // Automatically log in after successful registration
-      const { signIn } = await import('next-auth/react')
-      const result = await signIn('credentials', {
-        redirect: false,
-        email: email.trim().toLowerCase(),
-        password: password.trim(),
-      })
-
-      if (result?.error) {
-        throw new Error('Failed to log in after registration')
-      }
-
-      router.push('/dashboard')
+      router.push('/auth/login?registered=1')
       router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
