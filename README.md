@@ -58,16 +58,15 @@ Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## 👥 Demo Accounts
 
-The following accounts are created during the seeding process (`password123` for all):
+The following accounts are created during the seeding process (password123 for all):
 
-| Role | Email | Scope |
-|------|-------|-------|
-| **Admin** | `admin@example.com` | Organization-wide management |
-| **Senior Manager** | `manager@example.com` | High-level monitoring |
-| **Team Lead** | `lead@example.com` | Team-specific management |
-| **Project Lead** | `project@example.com` | Project-focused leadership |
-| **Developer** | `dev@example.com` | Personal tasks & assignments |
-
+| Role            | Email                | Password     | Scope                          |
+|-----------------|---------------------|--------------|--------------------------------|
+| Admin           | admin@example.com   | password123  | Organization-wide management   |
+| Senior Manager  | manager@example.com | password123  | High-level monitoring          |
+| Team Lead       | lead@example.com    | password123  | Team-specific management       |
+| Project Lead    | project@example.com | password123  | Project-focused leadership     |
+| Developer       | dev@example.com     | password123  | Personal tasks & assignments   |
 ## 📂 Project Structure
 
 - `app/`: Next.js App Router pages and API routes.
