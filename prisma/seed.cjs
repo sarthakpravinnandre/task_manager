@@ -12,6 +12,10 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
   const password = await bcrypt.hash('password123', 10)
 
+  await prisma.userSetting.deleteMany()
+  await prisma.supportTicket.deleteMany()
+  await prisma.message.deleteMany()
+  await prisma.voiceChannel.deleteMany()
   await prisma.reminder.deleteMany()
   await prisma.meeting.deleteMany()
   await prisma.task.deleteMany()
@@ -28,7 +32,6 @@ async function main() {
       role: Role.ADMIN,
     },
   })
-
   const teamLead = await prisma.user.create({
     data: {
       name: 'Maria Team Lead',
@@ -38,10 +41,7 @@ async function main() {
     },
   })
 
-  const team = await prisma.team.create({
-    data: { name: 'Product Engineering', leadId: teamLead.id },
-  })
-
+  // Create multiple teams managed by the team lead
   const backendTeam = await prisma.team.create({
     data: { name: 'Backend Team', leadId: teamLead.id },
   })
@@ -50,11 +50,15 @@ async function main() {
     data: { name: 'Frontend Team', leadId: teamLead.id },
   })
 
+  const databaseTeam = await prisma.team.create({
+    data: { name: 'Database Team', leadId: teamLead.id },
+  })
+
   const projects = await Promise.all([
-    prisma.project.create({ data: { name: 'Over9k', color: '#f97316', teamId: team.id } }),
-    prisma.project.create({ data: { name: 'MagnumShop', color: '#22c55e', teamId: team.id } }),
-    prisma.project.create({ data: { name: 'Doctor+', color: '#ef4444', teamId: backendTeam.id } }),
-    prisma.project.create({ data: { name: 'AfterMidnight', color: '#3b82f6', teamId: frontendTeam.id } }),
+    prisma.project.create({ data: { name: 'Core API Revamp', color: '#f97316', teamId: backendTeam.id } }),
+    prisma.project.create({ data: { name: 'Landing Page Redesign', color: '#22c55e', teamId: frontendTeam.id } }),
+    prisma.project.create({ data: { name: 'Data Migration V2', color: '#ef4444', teamId: databaseTeam.id } }),
+    prisma.project.create({ data: { name: 'Admin Dashboard', color: '#3b82f6', teamId: frontendTeam.id } }),
   ])
 
   const developer = await prisma.user.create({
@@ -63,7 +67,7 @@ async function main() {
       email: 'dev@example.com',
       password,
       role: Role.DEVELOPER,
-      teamId: team.id,
+      teamId: backendTeam.id,
     },
   })
 
@@ -73,7 +77,6 @@ async function main() {
       email: 'manager@example.com',
       password,
       role: Role.SENIOR_MANAGER,
-      teamId: team.id,
     },
   })
 
@@ -83,8 +86,27 @@ async function main() {
       email: 'project@example.com',
       password,
       role: Role.PROJECT_LEAD,
-      teamId: team.id,
+      teamId: frontendTeam.id,
     },
+  })
+
+  // Create Project Assignments for the developer
+  await prisma.projectAssignment.create({
+    data: {
+      projectId: projects[0].id, // Core API Revamp
+      userId: developer.id,
+      status: 'ACCEPTED',
+      acceptedAt: new Date(),
+      startedAt: new Date(),
+    }
+  })
+
+  await prisma.projectAssignment.create({
+    data: {
+      projectId: projects[2].id, // Data Migration V2
+      userId: developer.id,
+      status: 'PENDING',
+    }
   })
 
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
@@ -145,9 +167,57 @@ async function main() {
         { title: 'Client Presentation', time: '10:00 AM', priority: 'high', userId: user.id },
       ],
     })
+
+    // Create User Settings
+    await prisma.userSetting.create({
+      data: {
+        userId: user.id,
+        theme: index % 2 === 0 ? 'dark' : 'light',
+        notificationsEnabled: true,
+      }
+    })
   }
 
-  console.log('Seed complete. Login: admin@example.com / password123')
+  // Create Voice Channels
+  const voiceChannels = await Promise.all([
+    prisma.voiceChannel.create({ data: { name: 'General Voice', teamId: backendTeam.id } }),
+    prisma.voiceChannel.create({ data: { name: 'Design Sync', teamId: frontendTeam.id } }),
+    prisma.voiceChannel.create({ data: { name: 'Data Ops', teamId: databaseTeam.id } })
+  ])
+
+  // Create Support Tickets
+  await prisma.supportTicket.create({
+    data: {
+      subject: 'Cannot access production DB',
+      description: 'I am getting an access denied error when trying to connect to the new Neon database.',
+      status: 'open',
+      userId: developer.id,
+    }
+  })
+
+  // Create Messages
+  await prisma.message.create({
+    data: {
+      content: 'Hey Maria, can we sync on the Core API Revamp?',
+      senderId: developer.id,
+      receiverId: teamLead.id,
+    }
+  })
+
+  await prisma.message.create({
+    data: {
+      content: 'Sure thing, Alex. Join the General Voice channel.',
+      senderId: teamLead.id,
+      receiverId: developer.id,
+    }
+  })
+
+  console.log('Seed complete.')
+  console.log('Admin: admin@example.com / password123')
+  console.log('Team Lead: lead@example.com / password123')
+  console.log('Developer: dev@example.com / password123')
+  console.log('Manager: manager@example.com / password123')
+  console.log('Project Lead: project@example.com / password123')
 }
 
 main()
