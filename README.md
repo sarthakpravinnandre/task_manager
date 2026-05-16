@@ -2,6 +2,9 @@
 
 TeamHub is a comprehensive, role-based project management and team collaboration platform built with the latest web technologies. It provides a seamless experience for managing tasks, meetings, messages, and project lifecycles across different organizational roles.
 
+<img width="1918" height="986" alt="image" src="https://github.com/user-attachments/assets/2803514a-7c34-4923-bf1d-409bfa2d8710" />
+
+
 ## 🚀 Key Features
 
 - **Role-Based Dashboards**: Tailored experiences for Admins, Senior Managers, Team Leads, Project Leads, and Developers.
